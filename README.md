@@ -1,0 +1,2 @@
+# BackDoor-Demo
+BackDoor echa en python3 con trafico encriptado en base85, esta back door no se puede mover entra carpetas, pero si puede ejecutar comandos en la maquina victima, esta es una version demos, pues se espera poder desarrollar una funcion con la que desplazarse entre carpetas, esta puerta trasera uas conexiones tcp y tambien dispone de unserver http que se puede personalizar y ejecutar en el dispositivo victima con lo que se podira descargar sus archivos.
