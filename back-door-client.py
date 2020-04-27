@@ -19,6 +19,35 @@ global i
 
 def _MAIN():
     i = 1
+    print("""\033[1;37m
+                                .....
+                              .,clloc'
+                             .coc:::c:.
+                            .lkocll;;lc:;.
+                            .xX0xdoloxxkko.
+                      ...    'loddOOkOXNXd.
+                       ,ol:'.  .;cx0KKK0ko,.
+                       .cOOdcc:,..':loodddc.
+            ..          .ckOKNN0:. ...',,,.
+         ....            .;xNWWWKl.
+        ..                 ,OWWWWKl.
+         ..                .:OX0x:.
+            .               .dO:.
+                            .ll.
+ \033[1;31mm    m               mmmmm         #               m
+ ##  ##  m mm         #   "#  mmm   #mmm    mmm   mm#mm
+ # ## #  #"  "        #mmmm" #" "#  #" "#  #" "#    #
+ # "" #  #            #   "m #   #  #   #  #   #    #
+ #    #  #       #    #    " "#m#"  ##m#"  "#m#"    "mm\033[1;37m
+
+             ..                ..
+             .                  .
+            ..                  ..
+            ..              ..   .
+            .                .   .
+            .             .   ...
+            .             .    .\033[1;37m
+    """)
 
     def _CodingBase85Text(ServerConnect, text):
         data = base64.b85encode(text.encode('ascii'), pad=False)
